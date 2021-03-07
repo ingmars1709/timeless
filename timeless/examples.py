@@ -20,18 +20,31 @@ async def run_two_gets():
         print('\n'.join(map(lambda x: ','.join(map(str, x)), results)))
     logger.info('h2time with 2 GET requests finished')
 	
-async def run_two_gets_localhost():
-	#9456794567945679456794567945679456794567
-    #1234512345123451234512345123451234512345
-	
+async def run_two_unsafe_gets_localhost():
     r1 = H2Request('GET', 'https://127.0.0.1/try?code=1234512345123451234512345123451234512345')
     r2 = H2Request('GET', 'https://127.0.0.1/try?code=9456794567945679456794567945679456794567')
     logger.info('Starting h2time with 2 GET requests')
-    async with H2Time(r1, r2, num_request_pairs=500, num_padding_params=100) as h2t:
+    async with H2Time(r1, r2, num_request_pairs=50, num_padding_params=100) as h2t:
         results = await h2t.run_attack()
-        print('\n'.join(map(lambda x: ','.join(map(str, x)), results)))
-    logger.info('h2time with 2 GET requests finished')	
+        print('1st unsafe request arrived first:' + str(count(results, lambda x: x > 0)))
+        print('2nd unsafe request arrived first:' + str(count(results, lambda x: x < 0)))
+        print('equal:' + str(count(results, lambda x: x == 0)))
 
+async def run_two_safe_gets_localhost():
+    r1 = H2Request('GET', 'https://127.0.0.1/trysafe?code=1234512345123451234512345123451234512345')
+    r2 = H2Request('GET', 'https://127.0.0.1/trysafe?code=9456794567945679456794567945679456794567')
+    logger.info('Starting h2time with 2 GET requests')
+    async with H2Time(r1, r2, num_request_pairs=50, num_padding_params=100) as h2t:
+        results = await h2t.run_attack()
+        print('1st safe request arrived first:' + str(count(results, lambda x: x > 0)))
+        print('2nd safe request arrived first:' + str(count(results, lambda x: x < 0)))
+        print('equal:' + str(count(results, lambda x: x == 0)))
+
+def count(tuples, op):
+    i = 0
+    for tuple in tuples:
+      if op(tuple[0]): i=i+1
+    return i
 
 async def run_two_gets_customize_order():
     r1 = H2Request('GET', 'https://tom.vg/?1', {'user-agent': ua})
@@ -76,7 +89,8 @@ async def run_two_gets_loop():
 
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(run_two_gets_localhost())
+loop.run_until_complete(run_two_unsafe_gets_localhost())
+loop.run_until_complete(run_two_safe_gets_localhost())
 """
 loop.run_until_complete(run_two_gets())
 loop.run_until_complete(run_two_gets_customize_order())
