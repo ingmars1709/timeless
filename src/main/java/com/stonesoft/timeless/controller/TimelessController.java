@@ -13,19 +13,13 @@ public class TimelessController {
 
     @GetMapping("/try")
     public boolean test(@RequestParam String code) {
-        long start = System.nanoTime();
-        final boolean unsecureIsEqual = TimelessController.equals(secretCode.getBytes(), code.getBytes());
-        long end = System.nanoTime() - start;
-        System.out.println("Unsafe: " + end + " ns");
+        final boolean unsecureIsEqual = secretCode.equals(code);
         return unsecureIsEqual;
     }
 
     @GetMapping("/trysafe")
     public boolean testSafe(@RequestParam String code) {
-        long start = System.nanoTime();
         final boolean secureEqual = MessageDigest.isEqual(secretCode.getBytes(), code.getBytes());
-        long end = System.nanoTime() - start;
-        System.out.println("Safe: " + end + " ns");
         return secureEqual;
     }
 }
